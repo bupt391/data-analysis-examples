@@ -11,19 +11,23 @@ head(new_pop)
 new_pop$year <- as.character(new_pop$year)
 new_pop$year <- as.numeric(str_sub(new_pop$year, start = 2, 5))
 new_pop$index <- as.character(new_pop$index)
-#画总人口折线图
-p1 <- ggplot(subset(new_pop, index == "population"))+
-  geom_line(aes(year, population))
-#男性与女性人口条形图
-ggplot(subset(new_pop, index == "male" | index == "female"))+
-  geom_col(aes(year, population, fill = index), 
-           position = "dodge")
-#男性与女性人口折线图
-p2 <- ggplot(subset(new_pop, index == "male" | index == "female"))+
-  geom_line(aes(year, population, color = index))
-#城镇与乡村人口折线图
-p3 <- ggplot(subset(new_pop, index == "town" | index == "village"))+
-  geom_line(aes(year, population, color = index)
-#在一幅图中展示            
+#增加变量class, population→population, male/female→sex, town/village→region
+trans_fun <- function(x){
+  if(x == "population"){
+    return("population")
+  }else{
+   if(x == "male" | x == "female"){
+     return("sex")
+   }else{
+     return("region")
+   } 
+  }
+}
+new_pop$class <- unlist(lapply(new_pop$index, trans_fun))
+#人口折线图，使用class分面，使用index着色
 ggplot(new_pop)+
-  geom_line(aes(year, population, color = index))
+  geom_line(aes(year, population, color = index))+
+  facet_wrap(~ class)+
+  ylab("population(万)")+
+  theme_bw()
+ggsave("population.png")
